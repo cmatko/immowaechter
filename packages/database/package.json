@@ -1,0 +1,14 @@
+{
+  "name": "@immowaechter/database",
+  "version": "1.0.0",
+  "scripts": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.18.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.18.0",
+    "tsx": "^4.7.1"
+  }
+}

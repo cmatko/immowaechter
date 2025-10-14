@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  properties Property[]
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  maintenances Maintenance[]
+}
+
+model MaintenanceType {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  category        String
+  intervalMonths  Int
+  criticality     Int
+  priceMin        Float
+  priceMax        Float
+  legalBasis      String?
+  description     String?
+  maintenances    Maintenance[]
+}
+
+model Maintenance {
+  id                String          @id @default(cuid())
+  propertyId        String
+  property          Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  maintenanceTypeId String
+  maintenanceType   MaintenanceType @relation(fields: [maintenanceTypeId], references: [id])
+  lastDone          DateTime?
+  nextDue           DateTime
+  status            String          @default("pending")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
