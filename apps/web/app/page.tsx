@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, Shield, Clock, Users, TrendingUp, Gift, Zap, ChevronDown, MessageCircle, Info } from 'lucide-react';
+import { CheckCircle, Shield, Clock, Users, Gift, Zap, ChevronDown, MessageCircle, Info } from 'lucide-react';
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'duplicate'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'duplicate' | 'resent'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
@@ -26,17 +26,22 @@ export default function LandingPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setSubmitStatus('success');
+        // Prüfe ob Email erneut gesendet wurde
+        if (data.resent) {
+          setSubmitStatus('resent');
+        } else {
+          setSubmitStatus('success');
+        }
         setEmail('');
-        setTimeout(() => setSubmitStatus('idle'), 5000);
+        setTimeout(() => setSubmitStatus('idle'), 10000); // 10 Sekunden anzeigen
       } else if (response.status === 409) {
-        // Duplicate Email
+        // Duplicate Email (bereits verifiziert)
         setSubmitStatus('duplicate');
-        setErrorMessage('Diese Email ist bereits registriert!');
+        setErrorMessage(data.error || 'Diese Email ist bereits registriert!');
       } else if (response.status === 400) {
         // Invalid Email
         setSubmitStatus('error');
-        setErrorMessage('Bitte geben Sie eine gültige Email-Adresse ein.');
+        setErrorMessage(data.error || 'Bitte geben Sie eine gültige Email-Adresse ein.');
       } else {
         // Other errors
         setSubmitStatus('error');
@@ -70,9 +75,11 @@ export default function LandingPage() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
-              <AlertTriangle className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src="/web-app-manifest-512x512.png" 
+              alt="ImmoWächter Logo" 
+              className="w-10 h-10 shadow-lg"
+            />
             <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               ImmoWächter
             </span>
@@ -134,17 +141,40 @@ export default function LandingPage() {
                   disabled={isSubmitting || submitStatus === 'success'}
                   className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-xl hover:shadow-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Wird gesendet...' : submitStatus === 'success' ? '✓ Registriert' : 'Auf Warteliste'}
+                  {isSubmitting ? 'Wird gesendet...' : submitStatus === 'success' ? '✓ Email gesendet' : 'Auf Warteliste'}
                 </button>
               </form>
 
-              {/* Success Message */}
+              {/* Success Message - Email Verification */}
               {submitStatus === 'success' && (
                 <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-700 text-sm font-semibold flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                    <span>Erfolgreich registriert! Wir melden uns bald bei Ihnen.</span>
-                  </p>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-green-900">Email gesendet!</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Wir haben Ihnen eine Bestätigungs-Email geschickt. Bitte prüfen Sie Ihr Postfach und klicken Sie auf den Link.
+                      </p>
+                      <p className="text-xs text-green-600 mt-2">
+                        💡 Tipp: Schauen Sie auch im Spam-Ordner nach
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Resent Message */}
+              {submitStatus === 'resent' && (
+                <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-blue-900">Email erneut gesendet!</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Die Bestätigungs-Email wurde erneut verschickt. Bitte prüfen Sie Ihr Postfach.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -162,7 +192,7 @@ export default function LandingPage() {
               {submitStatus === 'error' && (
                 <div className="mt-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-red-600 text-sm font-semibold flex items-start gap-2">
-                    <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                    <Info className="w-5 h-5 flex-shrink-0" />
                     <span>{errorMessage}</span>
                   </p>
                 </div>
@@ -541,9 +571,11 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-white" />
-                </div>
+                <img 
+                  src="/web-app-manifest-192x192.png" 
+                  alt="ImmoWächter Logo" 
+                  className="w-8 h-8"
+                />
                 <span className="text-xl font-bold text-white">ImmoWächter</span>
               </div>
               <p className="text-sm text-gray-400">

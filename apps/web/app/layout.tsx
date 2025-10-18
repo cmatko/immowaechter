@@ -1,30 +1,108 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 import { Analytics } from '@vercel/analytics/react';
-import './globals.css';
-import type { Metadata } from 'next';
+
+const inter = Inter({ subsets: ["latin"] });
+
+const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || 'https://www.immowaechter.at';
 
 export const metadata: Metadata = {
-  title: 'ImmoWächter - Nie wieder Wartungen vergessen',
-  description: '648 CO-Vergiftungen/Jahr durch vergessene Wartungen. ImmoWächter erinnert Sie rechtzeitig an Thermenservice, Rauchfangkehrer & Co. Jetzt auf Warteliste!',
-  keywords: 'Wartungserinnerung, Immobilienwartung, Gasthermenwartung, OIB-Richtlinien, Förderungen Österreich',
+  title: "ImmoWächter - Nie wieder Wartungen vergessen | Österreich & Deutschland",
+  description: "648 Wartungen werden jährlich in Österreich vergessen – gehört Ihre dazu? ImmoWächter erinnert Sie rechtzeitig an gesetzlich vorgeschriebene Wartungen, zeigt Energie-Einsparpotenziale und findet verfügbare Förderungen.",
+  keywords: [
+    "Wartungserinnerung",
+    "Immobilienverwaltung",
+    "Gasthermen-Service",
+    "Rauchfangkehrer",
+    "Förderungen Österreich",
+    "Heizungswartung",
+    "CO-Vergiftung Prävention",
+    "OIB-Richtlinien",
+    "Energieberatung",
+    "Sanierungsförderung"
+  ],
+  authors: [{ name: "ImmoWächter Team" }],
+  creator: "ImmoWächter",
+  publisher: "ImmoWächter",
+  
+  alternates: {
+    canonical: DOMAIN,
+    languages: {
+      'de-AT': 'https://www.immowaechter.at',
+      'de-DE': 'https://www.immowaechter.de',
+    },
+  },
+  
   openGraph: {
-    title: 'ImmoWächter - Ihr Wartungsassistent',
-    description: 'Automatische Wartungserinnerungen + €24.000 Förderungen finden',
     type: 'website',
     locale: 'de_AT',
+    url: DOMAIN,
+    title: 'ImmoWächter - Nie wieder Wartungen vergessen',
+    description: '648 Wartungen werden jährlich in Österreich vergessen. ImmoWächter erinnert Sie rechtzeitig an alle wichtigen Termine.',
+    siteName: 'ImmoWächter',
+    images: [
+      {
+        url: `${DOMAIN}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'ImmoWächter - Digitaler Wartungsassistent',
+      }
+    ],
+  },
+  
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ImmoWächter - Nie wieder Wartungen vergessen',
+    description: '648 Wartungen werden jährlich vergessen in Österreich. Jetzt auf Warteliste!',
+    images: [`${DOMAIN}/og-image.png`],
+    creator: '@immowaechter',
+  },
+  
+  // 👇 NEU: Favicon Configuration
+  icons: {
+    icon: [
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  
+  manifest: '/site.webmanifest',
+  
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="de">
+    <html lang="de-AT">
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        {/* Additional SEO */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="theme-color" content="#DC2626" />
+        
+        {/* Preconnect für Performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body>
+      <body className={inter.className}>
         {children}
         <Analytics />
       </body>
