@@ -7,11 +7,14 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'duplicate'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
 
     try {
       const response = await fetch('/api/waitlist', {
@@ -20,15 +23,29 @@ export default function LandingPage() {
         body: JSON.stringify({ email }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setSubmitStatus('success');
         setEmail('');
         setTimeout(() => setSubmitStatus('idle'), 5000);
-      } else {
+      } else if (response.status === 409) {
+        // Duplicate Email
+        setSubmitStatus('duplicate');
+        setErrorMessage('Diese Email ist bereits registriert!');
+      } else if (response.status === 400) {
+        // Invalid Email
         setSubmitStatus('error');
+        setErrorMessage('Bitte geben Sie eine gültige Email-Adresse ein.');
+      } else {
+        // Other errors
+        setSubmitStatus('error');
+        setErrorMessage(data.error || 'Fehler beim Speichern. Bitte versuchen Sie es erneut.');
       }
     } catch (error) {
+      console.error('Network error:', error);
       setSubmitStatus('error');
+      setErrorMessage('Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.');
     } finally {
       setIsSubmitting(false);
     }
@@ -65,8 +82,8 @@ export default function LandingPage() {
               <Info className="w-4 h-4" />
               <span className="hidden sm:inline">Rechtliche Hinweise</span>
             </a>
-            <a 
-              href="#waitlist" 
+            <a
+              href="#waitlist"
               className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
             >
               Auf Warteliste
@@ -79,7 +96,7 @@ export default function LandingPage() {
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(251,191,36,0.1),transparent_50%)]" />
-        
+
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-semibold mb-6 shadow-md animate-pulse">
@@ -95,8 +112,8 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed">
-              ImmoWächter erinnert Sie rechtzeitig an gesetzlich vorgeschriebene Wartungen, 
-              zeigt Ihnen Energie-Einsparpotenziale und findet verfügbare Förderungen – 
+              ImmoWächter erinnert Sie rechtzeitig an gesetzlich vorgeschriebene Wartungen,
+              zeigt Ihnen Energie-Einsparpotenziale und findet verfügbare Förderungen –
               damit Ihre Immobilie sicher, effizient und rechtlich abgesichert bleibt.
             </p>
 
@@ -109,26 +126,46 @@ export default function LandingPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ihre.email@beispiel.at"
                   required
-                  className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-red-500 focus:outline-none"
+                  disabled={isSubmitting || submitStatus === 'success'}
+                  className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-red-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-xl hover:shadow-2xl font-bold disabled:opacity-50"
+                  disabled={isSubmitting || submitStatus === 'success'}
+                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-xl hover:shadow-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Wird gesendet...' : 'Auf Warteliste'}
+                  {isSubmitting ? 'Wird gesendet...' : submitStatus === 'success' ? '✓ Registriert' : 'Auf Warteliste'}
                 </button>
               </form>
-              
+
+              {/* Success Message */}
               {submitStatus === 'success' && (
-                <p className="mt-3 text-green-600 text-sm font-semibold">
-                  ✓ Danke! Wir melden uns bald bei Ihnen.
-                </p>
+                <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 text-sm font-semibold flex items-start gap-2">
+                    <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                    <span>Erfolgreich registriert! Wir melden uns bald bei Ihnen.</span>
+                  </p>
+                </div>
               )}
+
+              {/* Duplicate Email Message */}
+              {submitStatus === 'duplicate' && (
+                <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-amber-700 text-sm font-semibold flex items-start gap-2">
+                    <Info className="w-5 h-5 flex-shrink-0" />
+                    <span>{errorMessage}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Error Message */}
               {submitStatus === 'error' && (
-                <p className="mt-3 text-red-600 text-sm font-semibold">
-                  ✗ Fehler beim Speichern. Bitte versuchen Sie es erneut.
-                </p>
+                <div className="mt-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600 text-sm font-semibold flex items-start gap-2">
+                    <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                    <span>{errorMessage}</span>
+                  </p>
+                </div>
               )}
             </div>
 
@@ -143,7 +180,7 @@ export default function LandingPage() {
               <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm text-gray-800 leading-relaxed">
-                  <strong>ImmoWächter</strong> ist Ihr digitaler Assistent für rechtzeitige Wartungserinnerungen 
+                  <strong>ImmoWächter</strong> ist Ihr digitaler Assistent für rechtzeitige Wartungserinnerungen
                   gemäß österreichischen Standards (OIB-Richtlinien). Wir unterstützen Sie bei der Organisation 
                   Ihrer Wartungspflichten – die Durchführung und rechtliche Verantwortung verbleiben beim Eigentümer.
                 </p>
@@ -184,14 +221,14 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Wartungen */}
             <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-red-500 hover:shadow-2xl transition-shadow duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+              <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">        
                 <Shield className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Wartungen & Sicherheit
               </h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Automatische Erinnerungen an gesetzlich vorgeschriebene Wartungen (Gasthermen, Rauchfangkehrer, 
+                Automatische Erinnerungen an gesetzlich vorgeschriebene Wartungen (Gasthermen, Rauchfangkehrer,
                 Brandschutz) – nach österreichischen OIB-Richtlinien.
               </p>
               <ul className="space-y-2 text-sm text-gray-700">
@@ -212,14 +249,14 @@ export default function LandingPage() {
 
             {/* Förderungen */}
             <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-green-500 hover:shadow-2xl transition-shadow duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">    
                 <Gift className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Förderungen finden
               </h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Wir durchsuchen automatisch verfügbare Bundes- und Landesförderungen 
+                Wir durchsuchen automatisch verfügbare Bundes- und Landesförderungen
                 für Sanierungen, Heizungstausch und Dämmung.
               </p>
               <ul className="space-y-2 text-sm text-gray-700">
@@ -240,14 +277,14 @@ export default function LandingPage() {
 
             {/* Energie */}
             <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-blue-500 hover:shadow-2xl transition-shadow duration-300">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">      
                 <Zap className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Energie-Sparservice
               </h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Automatischer Vergleich Ihrer Strom- und Gastarife – wir zeigen Ihnen, 
+                Automatischer Vergleich Ihrer Strom- und Gastarife – wir zeigen Ihnen,
                 wo Sie durch einen Anbieterwechsel sparen können.
               </p>
               <ul className="space-y-2 text-sm text-gray-700">
@@ -447,11 +484,11 @@ export default function LandingPage() {
               },
               {
                 q: "Ist ImmoWächter DSGVO-konform?",
-                a: "Ja, alle Daten werden auf österreichischen Servern gespeichert und unterliegen strengsten Datenschutzrichtlinien nach DSGVO."
+                a: "Ja, alle Daten werden auf österreichischen Servern gespeichert und unterliegen strengsten Datenschutzrichtlinien nach DSGVO."    
               },
               {
                 q: "Wie werden die Erinnerungen versendet?",
-                a: "Per E-Mail, SMS oder Push-Notification – je nach Ihren Präferenzen. Sie können die Vorlaufzeit individuell einstellen."
+                a: "Per E-Mail, SMS oder Push-Notification – je nach Ihren Präferenzen. Sie können die Vorlaufzeit individuell einstellen."       
               },
               {
                 q: "Kann ich jederzeit kündigen?",
@@ -486,8 +523,8 @@ export default function LandingPage() {
           <p className="text-xl mb-8 max-w-2xl mx-auto text-red-100">
             Melden Sie sich jetzt für unsere Warteliste an und erhalten Sie frühzeitigen Zugang
           </p>
-          <a 
-            href="#waitlist" 
+          <a
+            href="#waitlist"
             className="inline-block bg-white text-red-600 px-10 py-5 rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-2xl hover:shadow-3xl font-bold text-lg"
           >
             Jetzt auf Warteliste
@@ -555,11 +592,11 @@ export default function LandingPage() {
                 Wichtiger Haftungsausschluss
               </h5>
               <p className="text-sm text-gray-400 leading-relaxed">
-                <strong>ImmoWächter</strong> ist ein digitaler Wartungsassistent, der Sie an gesetzliche Fristen 
-                und empfohlene Wartungsintervalle erinnert. Die Verantwortung für die Durchführung der Wartungen 
-                und die Einhaltung aller gesetzlichen Pflichten verbleibt beim Immobilienbesitzer. ImmoWächter 
-                ersetzt keine fachliche Beratung und übernimmt keine Haftung für Schäden, die durch versäumte 
-                Wartungen, fehlerhafte Angaben oder Systemausfälle entstehen. Alle Förderungs- und Tarifangaben 
+                <strong>ImmoWächter</strong> ist ein digitaler Wartungsassistent, der Sie an gesetzliche Fristen
+                und empfohlene Wartungsintervalle erinnert. Die Verantwortung für die Durchführung der Wartungen
+                und die Einhaltung aller gesetzlichen Pflichten verbleibt beim Immobilienbesitzer. ImmoWächter
+                ersetzt keine fachliche Beratung und übernimmt keine Haftung für Schäden, die durch versäumte
+                Wartungen, fehlerhafte Angaben oder Systemausfälle entstehen. Alle Förderungs- und Tarifangaben
                 sind unverbindlich und können sich ändern.
               </p>
             </div>
