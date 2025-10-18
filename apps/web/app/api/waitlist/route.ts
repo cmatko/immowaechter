@@ -29,6 +29,15 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Supabase error:', error);
+      
+      // Check für Duplicate Email:
+      if (error.code === '23505') {
+        return NextResponse.json(
+          { error: 'Diese Email ist bereits registriert!' },
+          { status: 409 }
+        );
+      }
+      
       return NextResponse.json(
         { error: 'Database error' },
         { status: 500 }
