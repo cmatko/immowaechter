@@ -10,7 +10,7 @@ export async function sendVerificationEmail(
   
   try {
     const { data, error } = await resend.emails.send({
-      from: 'ImmoWächter <onboarding@resend.dev>', // Später: team@immowaechter.at
+      from: 'ImmoWächter <team@immowaechter.at>', // Später: team@immowaechter.at
       to: email,
       subject: '✅ Bestätigen Sie Ihre Anmeldung bei ImmoWächter',
       html: `
