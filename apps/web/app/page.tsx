@@ -601,6 +601,11 @@ export default function LandingPage() {
     		    Datenschutz
   		  </a>
 		</li>
+		<li>
+  		  <a href="/agb" className="hover:text-red-400">
+    		    AGB
+  		  </a>
+		</li>
               </ul>
             </div>
 
