@@ -596,6 +596,11 @@ export default function LandingPage() {
                     WhatsApp: +43 676 6951814
                   </a>
                 </li>
+		<li>
+  		  <a href="/datenschutz" className="hover:text-red-400">
+    		    Datenschutz
+  		  </a>
+		</li>
               </ul>
             </div>
 

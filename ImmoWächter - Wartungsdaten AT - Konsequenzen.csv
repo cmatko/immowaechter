@@ -1,0 +1,11 @@
+Komponenten_ID,Risiko_Tod,Risiko_Verletzung,Versicherung_Verweigert,Strafrechtlich,Max_Schaden_EUR,Warnung_Gelb,Warnung_Rot,Warnung_Schwarz
+GAS_001,Ja,Ja,Ja,§88 StGB (fahrlässige Gemeingefährdung),500000,Wartung in 2 Monaten fällig,WARNUNG: CO-Gefahr! Versicherungsschutz gefährdet,KRITISCH: Lebensgefahr! Strafrechtliche Konsequenzen möglich
+RAUCH_001,Ja,Ja,Ja,§88 StGB,100000,Rauchfangkehrer-Termin vereinbaren,Brandgefahr erhöht! Versicherung kann verweigern,GEFAHR: Kaminbrand möglich! Behörde wird informiert
+ELEK_001,Ja,Ja,Ja,§89 StGB,300000,FI-Test durchführen,Stromschlag-Gefahr! Versicherung prüft Fahrlässigkeit,LEBENSGEFAHR: Defekter FI-Schutzschalter!
+LIFT_001,Ja,Ja,Ja,§89 StGB,200000,Aufzugsprüfung planen,Aufzug stilllegung droht! Haftung bei Unfall,KRITISCH: Absturzgefahr! Behördliche Stilllegung
+WASSER_001,Nein,Ja,Ja,Keine,100000,Rückstauklappe prüfen,Überflutungsgefahr! Versicherung prüft Obliegenheit,WARNUNG: Keller-Überflutung droht! Totalschaden möglich
+BRAND_001,Nein,Ja,Ja,§89 StGB,50000,Feuerlöscher prüfen lassen,Löschversagen im Brandfall!,GEFAHR: Keine Erstlöschung möglich!
+LEG_001,Ja,Ja,Ja,§229 StGB,150000,Legionellentest beauftragen,Gesundheitsgefahr! Gesundheitsamt wird informiert,KRITISCH: Legionellen-Ausbruch möglich! Anlage wird gesperrt
+PV_001,Nein,Nein,Ja,Keine,30000,Wartung vereinbaren,Ertragsverlust! Garantie erlischt,Brandgefahr durch Hotspots!
+OEL_001,Ja,Ja,Ja,§88 StGB,300000,Service buchen! Ölheizverbot 2025 beachten,"Vergiftungsgefahr! Förderung ""Raus aus Öl"" prüfen",KRITISCH: Austauschpflicht! Betriebsverbot droht
+BLITZ_001,Ja,Ja,Ja,Keine,500000,Blitzschutz prüfen lassen,Brandgefahr bei Gewitter!,GEFAHR: Totalschaden bei Blitzeinschlag!
