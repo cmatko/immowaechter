@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import DeletePropertyButton from '@/components/DeletePropertyButton';
+import LogoutButton from '@/components/LogoutButton';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
     async function loadData() {
@@ -22,6 +24,8 @@ export default function DashboardPage() {
       }
       
       setSession(currentSession);
+      setUserEmail(currentSession.user.email || '');
+
       // Load properties
       const { data, error } = await supabase
         .from('properties')
@@ -29,6 +33,7 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error loading properties:', error);
       } else {
         setProperties(data || []);
       }
