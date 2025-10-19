@@ -33,7 +33,6 @@ export default function LandingPage() {
           setSubmitStatus('success');
         }
         setEmail('');
-        setTimeout(() => setSubmitStatus('idle'), 10000); // 10 Sekunden anzeigen
       } else if (response.status === 409) {
         // Duplicate Email (bereits verifiziert)
         setSubmitStatus('duplicate');
@@ -145,21 +144,53 @@ export default function LandingPage() {
                 </button>
               </form>
 
-              {/* Success Message - Email Verification */}
+              {/* Success Message - Email Verification mit SPAM-HINWEIS */}
               {submitStatus === 'success' && (
-                <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-green-900">Email gesendet!</p>
-                      <p className="text-sm text-green-700 mt-1">
-                        Wir haben Ihnen eine Bestätigungs-Email geschickt. Bitte prüfen Sie Ihr Postfach und klicken Sie auf den Link.
-                      </p>
-                      <p className="text-xs text-green-600 mt-2">
-                        💡 Tipp: Schauen Sie auch im Spam-Ordner nach
-                      </p>
-                    </div>
+                <div className="mt-4 bg-green-50 border border-green-200 p-6 rounded-lg">
+                  <h3 className="text-lg font-bold text-green-700 mb-3 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Fast geschafft!
+                  </h3>
+                  
+                  <p className="text-gray-700 mb-3">
+                    Wir haben Ihnen eine <strong>Bestätigungs-Email</strong> geschickt an:
+                  </p>
+                  
+                  <div className="bg-white p-3 rounded border border-green-300 mb-4">
+                    <code className="text-green-700 font-mono text-sm break-all">
+                      {email}
+                    </code>
                   </div>
+                  
+                  <p className="text-gray-700 mb-4">
+                    📧 Bitte <strong>checken Sie Ihre Emails</strong> und klicken Sie auf den Bestätigungslink.
+                  </p>
+                  
+                  {/* Spam-Warnung */}
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                    <p className="font-bold text-yellow-800 mb-2 flex items-center gap-2">
+                      <Info className="w-5 h-5" />
+                      WICHTIG: Email nicht gefunden?
+                    </p>
+                    <ul className="text-sm text-yellow-700 space-y-1.5">
+                      <li className="flex items-start gap-2">
+                        <span className="flex-shrink-0">•</span>
+                        <span>Schauen Sie in Ihrem <strong>SPAM/JUNK-Ordner</strong> nach</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="flex-shrink-0">•</span>
+                        <span>Die Email kommt von: <code className="bg-white px-1.5 py-0.5 rounded text-xs">noreply@send.immowaechter.at</code></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="flex-shrink-0">•</span>
+                        <span>Markieren Sie die Email als "Kein Spam" für zukünftige Nachrichten</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 text-center">
+                    Wir arbeiten daran, die Zustellbarkeit zu verbessern! 🚀
+                  </p>
                 </div>
               )}
 
