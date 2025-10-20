@@ -54,10 +54,6 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
       .eq('is_active', true)
       .order('next_maintenance', { ascending: true });
 
-    console.log('🔍 Components Query Error:', compError);
-    console.log('🔍 Components Data:', componentsData);
-    console.log('🔍 Property ID:', params.id);
-
     setComponents(componentsData || []);
     setLoading(false);
   };
