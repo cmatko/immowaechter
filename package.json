@@ -11,9 +11,15 @@
     "build": "npm run build --workspace=apps/web",
     "start": "npm run start --workspace=apps/web",
     "lint": "npm run lint --workspace=apps/web",
-    "clean": "rimraf node_modules .next apps/web/node_modules apps/web/.next"
+    "clean": "rimraf node_modules .next apps/web/node_modules apps/web/.next",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.8.1",
     "rimraf": "^5.0.5"
   },
   "dependencies": {
