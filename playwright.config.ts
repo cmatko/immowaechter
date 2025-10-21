@@ -27,7 +27,7 @@ export default defineConfig({
     ['list'],
     ['junit', { outputFile: 'test-results/junit.xml' }]
   ],
-  
+
   use: {
     // Base URL for tests
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
@@ -52,20 +52,11 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    // Disabled other browsers for now to speed up testing
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
   ],
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'npm run dev',
+    command: 'cd apps/web && npm run dev',  // ✅ FIXED: Läuft jetzt in apps/web!
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
