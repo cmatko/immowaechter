@@ -57,9 +57,8 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     
     components.forEach(component => {
-      // Base score for component type (use custom_name as component type)
-      const componentType = component.custom_name || 'unknown';
-      const componentTypeScore = getComponentTypeScore(componentType);
+      // Base score for component type (use default score since component_type doesn't exist)
+      const componentTypeScore = 5; // Default score for any component
       score += componentTypeScore;
       
       // Risk level multiplier
