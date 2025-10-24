@@ -1,14 +1,8 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import type { HealingSession } from '@/types/healing';
 
 export default function HealingDashboardPage() {
-  const [sessions, setSessions] = useState<HealingSession[]>([]);
-  const [loading, setLoading] = useState(true);
-
   // Mock data for testing without Supabase
-  const mockSessions: HealingSession[] = [
+  const sessions: HealingSession[] = [
     {
       id: '1',
       session_id: 'heal-session-001',
@@ -64,25 +58,6 @@ export default function HealingDashboardPage() {
       screenshot_url: '/screenshots/maintenance-reminder-api-error.html'
     }
   ];
-
-  useEffect(() => {
-    // Simulate loading delay
-    setTimeout(() => {
-      setSessions(mockSessions);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Lade Heilungssitzungen...</p>
-        </div>
-      </div>
-    );
-  }
 
   const totalSessions = sessions.length;
   const successfulHealings = sessions.filter(s => s.success).length;
