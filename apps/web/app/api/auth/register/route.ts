@@ -1,35 +1,39 @@
 // app/api/auth/register/route.ts
 
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-client';
+import type { ApiResponse } from '@/types/database';
 
-// Admin client für User-Erstellung
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
 
-export async function POST(request: NextRequest) {
+interface RegisterResponse {
+  message: string;
+  user?: {
+    id: string;
+    email: string;
+  };
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<RegisterResponse>>> {
   try {
-    const { email, password, firstName, lastName } = await request.json();
+    const { email, password, firstName, lastName }: RegisterRequest = await request.json();
 
     // Validierung
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json(
-        { message: 'Alle Felder sind erforderlich' },
+        { success: false, error: 'Alle Felder sind erforderlich' },
         { status: 400 }
       );
     }
 
     if (password.length < 8) {
       return NextResponse.json(
-        { message: 'Passwort muss mindestens 8 Zeichen lang sein' },
+        { success: false, error: 'Passwort muss mindestens 8 Zeichen lang sein' },
         { status: 400 }
       );
     }
@@ -47,14 +51,14 @@ export async function POST(request: NextRequest) {
     if (authError) {
       console.error('Auth error:', authError);
       return NextResponse.json(
-        { message: authError.message },
+        { success: false, error: authError.message },
         { status: 400 }
       );
     }
 
     if (!authData.user) {
       return NextResponse.json(
-        { message: 'User creation failed' },
+        { success: false, error: 'User creation failed' },
         { status: 500 }
       );
     }
@@ -62,11 +66,12 @@ export async function POST(request: NextRequest) {
     // 2. Profile erstellen
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert({
+      .insert([{
         id: authData.user.id,
         email: email,
         full_name: `${firstName} ${lastName}`,
-      });
+        country: 'AT', // Österreich-First Approach
+      }] as any);
 
     if (profileError) {
       console.error('Profile error:', profileError);
@@ -76,18 +81,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      message: 'Registrierung erfolgreich',
-      user: {
-        id: authData.user.id,
-        email: authData.user.email,
+    return NextResponse.json<ApiResponse<RegisterResponse>>({
+      success: true,
+      data: {
+        message: 'Registrierung erfolgreich',
+        user: {
+          id: authData.user.id,
+          email: authData.user.email || email,  // Fallback!
+        }
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Registrierung fehlgeschlagen';
     return NextResponse.json(
-      { message: error.message || 'Registrierung fehlgeschlagen' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

@@ -1,27 +1,161 @@
-name: Playwright Tests
+name: ImmoWächter CI/CD Pipeline
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+
 jobs:
-  test:
-    timeout-minutes: 60
+  # ============================================
+  # CODE QUALITY & LINTING
+  # ============================================
+  lint:
+    name: Code Quality & Linting
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+        cache: 'npm'
+    
     - name: Install dependencies
       run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint --workspace=apps/web
+    
+    - name: TypeScript Check
+      run: npx tsc --noEmit --project apps/web/tsconfig.json
+
+  # ============================================
+  # UNIT TESTS
+  # ============================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Unit Tests
+      run: npm run test --workspace=apps/web
+    
+    - name: Upload Test Coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: apps/web/coverage/lcov.info
+
+  # ============================================
+  # E2E TESTS
+  # ============================================
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    
     - name: Run Playwright tests
       run: npx playwright test
-    - uses: actions/upload-artifact@v4
+    
+    - name: Upload Playwright Report
+      uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+
+  # ============================================
+  # SECURITY SCANNING
+  # ============================================
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Security Audit
+      run: npm audit --audit-level=moderate
+    
+    - name: Check for known vulnerabilities
+      run: npx audit-ci --config audit-ci.json
+
+  # ============================================
+  # BUILD & DEPLOY
+  # ============================================
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, e2e-tests, security]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build Application
+      run: npm run build --workspace=apps/web
+    
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: apps/web/.next/
+        retention-days: 7
+
+  # ============================================
+  # DEPLOYMENT (nur bei main branch)
+  # ============================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        path: apps/web/.next/
+    
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: apps/web
+        vercel-args: '--prod'

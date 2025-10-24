@@ -99,13 +99,12 @@ export async function GET(request: NextRequest) {
     // Process each component
     for (const component of components) {
       try {
-        // @ts-ignore - Supabase types
-        const property = component.properties;
-        // @ts-ignore
-        const interval = component.maintenance_intervals;
+        // Type Assertion Workarounds - Supabase types
+        const property = (component as any).properties;
+        const interval = (component as any).maintenance_intervals;
 
         if (!property || !interval) {
-          console.log(`⚠️ Skipping component ${component.id}: Missing property or interval data`);
+          console.log(`⚠️ Skipping component ${(component as any).id}: Missing property or interval data`);
           continue;
         }
 
@@ -113,16 +112,16 @@ export async function GET(request: NextRequest) {
         const { data: user, error: userError } = await supabase
           .from('profiles')
           .select('id, email, full_name')
-          .eq('id', property.user_id)
+          .eq('id', (property as any).user_id)
           .single();
 
         if (userError || !user) {
-          console.log(`⚠️ Skipping component ${component.id}: User not found`);
+          console.log(`⚠️ Skipping component ${(component as any).id}: User not found`);
           continue;
         }
 
         // Calculate days until maintenance
-        const nextMaintenanceDate = new Date(component.next_maintenance);
+        const nextMaintenanceDate = new Date((component as any).next_maintenance);
         const daysUntil = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const isOverdue = daysUntil < 0;
 
@@ -139,20 +138,20 @@ export async function GET(request: NextRequest) {
           daysUntil === 0; // Day of
 
         if (!shouldSendNotification) {
-          console.log(`⏭️ Skipping notification for component ${component.id} (${daysUntil} days)`);
+          console.log(`⏭️ Skipping notification for component ${(component as any).id} (${daysUntil} days)`);
           continue;
         }
 
         // Prepare email data
-        const componentDisplayName = component.custom_name || interval.component;
-        const propertyAddress = `${property.address || ''}, ${property.postal_code || ''} ${property.city || ''}`.trim();
+        const componentDisplayName = (component as any).custom_name || (interval as any).component;
+        const propertyAddress = `${(property as any).address || ''}, ${(property as any).postal_code || ''} ${(property as any).city || ''}`.trim();
 
         const maintenanceData: MaintenanceReminderData = {
-          userName: user.full_name || 'Immobilien-Eigentümer',
-          propertyName: property.name || 'Ihre Immobilie',
+          userName: (user as any).full_name || 'Immobilien-Eigentümer',
+          propertyName: (property as any).name || 'Ihre Immobilie',
           propertyAddress: propertyAddress,
           componentName: componentDisplayName,
-          nextMaintenanceDate: component.next_maintenance,
+          nextMaintenanceDate: (component as any).next_maintenance,
           daysUntil: Math.abs(daysUntil),
           isOverdue
         };
@@ -164,37 +163,37 @@ export async function GET(request: NextRequest) {
         // Send email via Resend
         const { data: emailData, error: emailError } = await resend.emails.send({
           from: 'ImmoWächter <noreply@immowaechter.at>',
-          to: user.email,
+          to: (user as any).email,
           subject: emailSubject,
           html: emailHtml,
         });
 
         if (emailError) {
-          console.error(`❌ Failed to send email to ${user.email}:`, emailError);
-          errors.push(`${user.email}: ${emailError.message}`);
+          console.error(`❌ Failed to send email to ${(user as any).email}:`, emailError);
+          errors.push(`${(user as any).email}: ${emailError.message}`);
           continue;
         }
 
-        console.log(`✅ Sent ${isOverdue ? 'overdue' : 'reminder'} email to ${user.email} for ${componentDisplayName}`);
-        emailsSent.push(user.email);
+        console.log(`✅ Sent ${isOverdue ? 'overdue' : 'reminder'} email to ${(user as any).email} for ${componentDisplayName}`);
+        emailsSent.push((user as any).email);
 
         notifications.push({
-          componentId: component.id,
-          userId: user.id,
-          userEmail: user.email,
+          componentId: (component as any).id,
+          userId: (user as any).id,
+          userEmail: (user as any).email,
           userName: maintenanceData.userName,
-          propertyId: property.id,
+          propertyId: (property as any).id,
           propertyName: maintenanceData.propertyName,
           propertyAddress: propertyAddress,
           componentName: componentDisplayName,
-          nextMaintenance: component.next_maintenance,
+          nextMaintenance: (component as any).next_maintenance,
           daysUntil: Math.abs(daysUntil),
           isOverdue
         });
 
       } catch (error) {
-        console.error(`❌ Error processing component ${component.id}:`, error);
-        errors.push(`Component ${component.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error(`❌ Error processing component ${(component as any).id}:`, error);
+        errors.push(`Component ${(component as any).id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 

@@ -5,18 +5,50 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DeletePropertyButton from '@/components/DeletePropertyButton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { RiskBadge } from '@/components/RiskBadge';
+import { RiskDetailsModal } from '@/components/RiskDetailsModal';
+import type { Property, Component, PropertyType, ComponentRisk } from '@/types/database';
 
 export default function PropertyDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [property, setProperty] = useState<any>(null);
-  const [components, setComponents] = useState<any[]>([]);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [components, setComponents] = useState<Component[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
+  
+  // Risk System State
+  const [selectedComponent, setSelectedComponent] = useState<any>(null);
+  const [riskModalOpen, setRiskModalOpen] = useState(false);
+  const [riskData, setRiskData] = useState<any>(null);
+  const [riskLoading, setRiskLoading] = useState(false);
 
   useEffect(() => {
     loadProperty();
   }, [params.id]);
+
+  // Risk System Functions
+  const showRiskDetails = async (componentId: string) => {
+    setRiskLoading(true);
+    try {
+      const response = await fetch(`/api/components/${componentId}/risk`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setRiskData(data.data);
+        setRiskModalOpen(true);
+      } else {
+        console.error('Risk API Error:', data.error);
+        alert('Fehler beim Laden der Risiko-Details: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Risk API Error:', error);
+      alert('Fehler beim Laden der Risiko-Details');
+    } finally {
+      setRiskLoading(false);
+    }
+  };
 
   const loadProperty = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -166,7 +198,7 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
     );
   }
 
-  const propertyTypes: any = {
+  const propertyTypes: Record<PropertyType, string> = {
     house: '🏡 Einfamilienhaus',
     apartment: '🏢 Wohnung',
     multi_family: '🏘️ Mehrfamilienhaus',
@@ -174,7 +206,40 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('Property Details Error Boundary caught error:', error, errorInfo);
+        // Could send specific property errors to analytics
+      }}
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Immobilien-Details Fehler</h2>
+            <p className="text-gray-600 mb-6">Die Immobilien-Details konnten nicht geladen werden. Bitte versuchen Sie es erneut.</p>
+            <div className="space-y-3">
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Seite neu laden
+              </button>
+              <Link
+                href="/dashboard"
+                className="w-full bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors inline-block"
+              >
+                ← Zurück zum Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <div className="min-h-screen bg-gray-50 py-8">
       {/* Success Toast */}
       {showToast && (
         <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg animate-bounce z-50">
@@ -210,16 +275,16 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
         </div>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {property.status && (
+          {(property as any).status && (
             <div className={`px-6 py-3 ${
-              property.status === 'rented' 
+              (property as any).status === 'rented' 
                 ? 'bg-green-50 border-b border-green-200' 
                 : 'bg-yellow-50 border-b border-yellow-200'
             }`}>
               <p className={`text-sm font-medium ${
-                property.status === 'rented' ? 'text-green-800' : 'text-yellow-800'
+                (property as any).status === 'rented' ? 'text-green-800' : 'text-yellow-800'
               }`}>
-                {property.status === 'rented' ? '✅ Vermietet' : '⏳ Verfügbar'}
+                {(property as any).status === 'rented' ? '✅ Vermietet' : '⏳ Verfügbar'}
               </p>
             </div>
           )}
@@ -304,11 +369,14 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {components.map((component: any) => {
-                    const status = getMaintenanceStatus(component.last_maintenance, component.next_maintenance);
+                  {components.map((component: Component) => {
+                    const status = getMaintenanceStatus(
+                      (component as any).last_maintenance || '',
+                      (component as any).next_maintenance || ''
+                    );
 
                     // Component display name mapping
-                    const componentNames: any = {
+                    const componentNames: Record<string, string> = {
                       'HEAT_GAS_001': 'Gastherme',
                       'HEAT_OIL_001': 'Ölheizung',
                       'HEAT_PELLET_001': 'Pelletsheizung',
@@ -336,6 +404,9 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
                               <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded font-medium">
                                 ⚖️ Gesetzlich
                               </span>
+                              {(component as any).risk_level && (
+                                <RiskBadge level={(component as any).risk_level} size="sm" />
+                              )}
                               {status.justDone && (
                                 <span className="text-xs px-2 py-1 bg-green-600 text-white rounded font-medium animate-pulse">
                                   ✓ Heute erledigt!
@@ -352,7 +423,7 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
                             )}
                             <div className="flex gap-4 text-sm">
                               <span className="text-gray-600">
-                                Letzte: <strong>{new Date(component.last_maintenance).toLocaleDateString('de-AT')}</strong>
+                                Letzte: <strong>{(component as any).last_maintenance ? new Date((component as any).last_maintenance).toLocaleDateString('de-AT') : 'Nie'}</strong>
                               </span>
                               <span className={`font-medium ${
                                 status.justDone
@@ -363,7 +434,7 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
                                   ? 'text-yellow-700'
                                   : 'text-green-700'
                               }`}>
-                                Nächste: <strong>{new Date(component.next_maintenance).toLocaleDateString('de-AT')}</strong>
+                                Nächste: <strong>{(component as any).next_maintenance ? new Date((component as any).next_maintenance).toLocaleDateString('de-AT') : 'Nicht geplant'}</strong>
                                 {status.status === 'overdue' && !status.justDone && (
                                   <span className="ml-2">({status.days} Tage überfällig!)</span>
                                 )}
@@ -378,6 +449,17 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
                                 )}
                               </span>
                             </div>
+                            
+                            {/* Risk Details Button für kritische Components */}
+                            {(component as any).risk_level && ['critical', 'legal'].includes((component as any).risk_level) && (
+                              <button
+                                onClick={() => showRiskDetails(component.id)}
+                                disabled={riskLoading}
+                                className="mt-2 text-sm text-red-600 hover:text-red-800 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {riskLoading ? '⏳ Lädt...' : '⚠️ Risiko-Details anzeigen'}
+                              </button>
+                            )}
                           </div>
                           <div className="ml-4">
                             {/* Button nur klickbar wenn überfällig oder heute erledigt */}
@@ -416,6 +498,17 @@ export default function PropertyDetailsPage({ params }: { params: { id: string }
           </div>
         </div>
       </div>
+      
+      {/* Risk Details Modal */}
+      {riskModalOpen && riskData && (
+        <RiskDetailsModal
+          isOpen={riskModalOpen}
+          onClose={() => setRiskModalOpen(false)}
+          componentName={riskData.component.name || 'Unbekanntes Component'}
+          risk={riskData.risk}
+        />
+      )}
     </div>
+    </ErrorBoundary>
   );
 }

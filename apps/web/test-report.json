@@ -1,0 +1,135 @@
+{
+  "timestamp": "2025-10-22T12:06:30.326Z",
+  "tests": {
+    "dependencies": {
+      "status": "pass",
+      "details": [
+        {
+          "name": "web-push",
+          "status": "pass"
+        },
+        {
+          "name": "resend",
+          "status": "pass"
+        },
+        {
+          "name": "@supabase/supabase-js",
+          "status": "pass"
+        }
+      ]
+    },
+    "environment": {
+      "status": "fail",
+      "details": [
+        {
+          "name": "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+          "status": "fail"
+        },
+        {
+          "name": "VAPID_PRIVATE_KEY",
+          "status": "fail"
+        },
+        {
+          "name": "RESEND_API_KEY",
+          "status": "fail"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_URL",
+          "status": "fail"
+        },
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY",
+          "status": "fail"
+        }
+      ]
+    },
+    "files": {
+      "status": "pass",
+      "details": [
+        {
+          "name": "public/sw.js",
+          "status": "pass"
+        },
+        {
+          "name": "hooks/usePushNotifications.ts",
+          "status": "pass"
+        },
+        {
+          "name": "components/settings/NotificationSettings.tsx",
+          "status": "pass"
+        },
+        {
+          "name": "lib/email-templates.ts",
+          "status": "pass"
+        },
+        {
+          "name": "app/api/notifications/subscribe/route.ts",
+          "status": "pass"
+        },
+        {
+          "name": "app/api/notifications/send/route.ts",
+          "status": "pass"
+        },
+        {
+          "name": "app/api/cron/check-maintenances/route.ts",
+          "status": "pass"
+        },
+        {
+          "name": "app/api/health/notifications/route.ts",
+          "status": "pass"
+        }
+      ]
+    },
+    "templates": {
+      "status": "fail",
+      "details": [
+        {
+          "name": "templates",
+          "status": "fail",
+          "error": "Cannot find module 'C:\\Users\\User\\Desktop\\immowaechter\\apps\\web\\scripts\\lib\\email-templates.js' imported from C:\\Users\\User\\Desktop\\immowaechter\\apps\\web\\scripts\\test-report.mjs"
+        }
+      ]
+    },
+    "database": {
+      "status": "fail",
+      "details": [
+        {
+          "name": "connection",
+          "status": "fail",
+          "error": "supabaseUrl is required."
+        }
+      ]
+    },
+    "api": {
+      "status": "partial",
+      "details": [
+        {
+          "name": "/api/health/notifications",
+          "status": "pass",
+          "statusCode": 503
+        },
+        {
+          "name": "/api/notifications/subscribe",
+          "status": "pass",
+          "statusCode": 405
+        },
+        {
+          "name": "/api/notifications/send",
+          "status": "pass",
+          "statusCode": 500
+        },
+        {
+          "name": "/api/cron/check-maintenances",
+          "status": "pass",
+          "statusCode": 401
+        }
+      ]
+    }
+  },
+  "summary": {
+    "totalTests": 24,
+    "passed": 15,
+    "failed": 9,
+    "warnings": 0
+  }
+}

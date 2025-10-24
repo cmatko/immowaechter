@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { getSupabaseBrowserClient } from '@/lib/supabase-client';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -10,8 +10,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inactivityMessage, setInactivityMessage] = useState('');
   
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = getSupabaseBrowserClient();
+
+  // Prüfe ob User wegen Inaktivität ausgeloggt wurde
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'inactivity') {
+      setInactivityMessage('Sie wurden automatisch ausgeloggt wegen Inaktivität. Bitte melden Sie sich erneut an.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +54,13 @@ export default function LoginPage() {
           </h1>
           <p className="text-gray-600">Melde dich bei ImmoWächter an</p>
         </div>
+
+        {/* Inactivity Message */}
+        {inactivityMessage && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg mb-4 text-sm">
+            ⚠️ Sie wurden wegen Inaktivität automatisch abgemeldet. Bitte melden Sie sich erneut an.
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (

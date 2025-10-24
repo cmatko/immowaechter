@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { MaintenanceInterval, Property } from '@/types/database';
 
 export default function AddMaintenancePage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [property, setProperty] = useState<any>(null);
+  const [property, setProperty] = useState<Property | null>(null);
   const [intervals, setIntervals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -108,8 +109,9 @@ export default function AddMaintenancePage({ params }: { params: { id: string } 
 
       // Success
       window.location.href = `/properties/${params.id}`;
-    } catch (err: any) {
-      setError(err.message || 'Ein Fehler ist aufgetreten');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
+      setError(errorMessage);
       setSaving(false);
     }
   };
@@ -142,11 +144,12 @@ export default function AddMaintenancePage({ params }: { params: { id: string } 
   const selectedInterval = intervals.find(i => i.id === formData.interval_id);
 
   // Group intervals by category
-  const groupedIntervals = intervals.reduce((acc: any, interval) => {
-    if (!acc[interval.category]) {
-      acc[interval.category] = [];
+  const groupedIntervals = intervals.reduce((acc: Record<string, MaintenanceInterval[]>, interval) => {
+    const category = (interval as any).category;
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[interval.category].push(interval);
+    acc[category].push(interval);
     return acc;
   }, {});
 

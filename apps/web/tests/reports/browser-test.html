@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ImmoWächter Notifications Test</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .test { padding: 15px; margin: 10px 0; border-left: 4px solid #ccc; }
+    .test.pass { border-color: #10B981; background: #D1FAE5; }
+    .test.fail { border-color: #DC2626; background: #FEE2E2; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+    pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🧪 ImmoWächter Notifications Test Suite</h1>
+
+  <div id="results"></div>
+
+  <h2>Manual Tests:</h2>
+  <button onclick="testServiceWorker()">Test Service Worker</button>
+  <button onclick="testPushPermission()">Test Push Permission</button>
+  <button onclick="testNotificationShow()">Test Show Notification</button>
+  <button onclick="testAPIEndpoints()">Test API Endpoints</button>
+
+  <script>
+    const results = document.getElementById('results');
+
+    function addResult(name, passed, details) {
+      const div = document.createElement('div');
+      div.className = `test ${passed ? 'pass' : 'fail'}`;
+      div.innerHTML = `
+        <strong>${passed ? '✅' : '❌'} ${name}</strong>
+        ${details ? `<pre>${details}</pre>` : ''}
+      `;
+      results.appendChild(div);
+    }
+
+    // Auto-run tests on load
+    window.addEventListener('load', async () => {
+      // Test 1: Service Worker Support
+      const swSupported = 'serviceWorker' in navigator;
+      addResult('Service Worker Support', swSupported);
+
+      // Test 2: Notification API Support
+      const notifSupported = 'Notification' in window;
+      addResult('Notification API Support', notifSupported);
+
+      // Test 3: Push Manager Support
+      const pushSupported = 'PushManager' in window;
+      addResult('Push Manager Support', pushSupported);
+
+      // Test 4: Service Worker Registration
+      if (swSupported) {
+        try {
+          const reg = await navigator.serviceWorker.register('/sw.js');
+          addResult('Service Worker Registration', true, `Scope: ${reg.scope}`);
+        } catch (error) {
+          addResult('Service Worker Registration', false, error.message);
+        }
+      }
+
+      // Test 5: Notification Permission
+      if (notifSupported) {
+        addResult('Notification Permission', true, `Current: ${Notification.permission}`);
+      }
+    });
+
+    async function testServiceWorker() {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        addResult('Service Worker Query', registrations.length > 0, 
+          `Found ${registrations.length} registration(s)`);
+      } catch (error) {
+        addResult('Service Worker Query', false, error.message);
+      }
+    }
+
+    async function testPushPermission() {
+      try {
+        const permission = await Notification.requestPermission();
+        addResult('Push Permission Request', permission === 'granted', 
+          `Permission: ${permission}`);
+      } catch (error) {
+        addResult('Push Permission Request', false, error.message);
+      }
+    }
+
+    async function testNotificationShow() {
+      try {
+        if (Notification.permission !== 'granted') {
+          addResult('Show Notification', false, 'Permission not granted');
+          return;
+        }
+
+        const notif = new Notification('🧪 Test Notification', {
+          body: 'This is a test from ImmoWächter',
+          icon: '/icon-192.png'
+        });
+
+        addResult('Show Notification', true, 'Check if notification appeared!');
+      } catch (error) {
+        addResult('Show Notification', false, error.message);
+      }
+    }
+
+    async function testAPIEndpoints() {
+      const endpoints = [
+        '/api/notifications/subscribe',
+        '/api/notifications/send',
+        '/api/cron/check-maintenances'
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, { method: 'GET' });
+          addResult(`API Endpoint ${endpoint}`, 
+            response.status !== 404, 
+            `Status: ${response.status}`);
+        } catch (error) {
+          addResult(`API Endpoint ${endpoint}`, false, error.message);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+

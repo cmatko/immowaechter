@@ -15,7 +15,14 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "docker:build": "docker build -t immowaechter/app .",
+    "docker:run": "docker run -p 3000:3000 immowaechter/app",
+    "docker:compose": "docker-compose -f docker-compose.ci.yml up -d",
+    "docker:compose:down": "docker-compose -f docker-compose.ci.yml down",
+    "ci:test": "npm run lint && npm run test --workspace=apps/web && npm run test:e2e",
+    "ci:build": "npm run build && npm run docker:build",
+    "ci:deploy": "npm run ci:test && npm run ci:build"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",

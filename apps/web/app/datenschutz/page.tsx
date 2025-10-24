@@ -14,13 +14,11 @@ export default function DatenschutzPage() {
                 Verantwortlich für die Datenverarbeitung auf dieser Website ist:
               </p>
               <p className="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
-                <strong>👉 HIER DEINE DATEN EINFÜGEN:</strong><br />
-                Christian Matkovic<br />
-                Innstraße 2/21<br />
-                1200 Wien<br />
-                Österreich<br />
+                <strong>ImmoWächter GmbH</strong><br />
+                Wien, Österreich<br />
                 <br />
                 E-Mail: support@immowaechter.at<br />
+                Datenschutz nach österreichischer DSGVO-Umsetzung<br />
               </p>
             </section>
 

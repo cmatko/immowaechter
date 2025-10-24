@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseBrowserClient } from '@/lib/supabase-client';
 
 export default function AdminDashboard() {
   const [password, setPassword] = useState('');
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(false);
 
-  const supabase = createClientComponentClient();
+  const supabase = getSupabaseBrowserClient();
 
   // CHECK AUTH STATUS ON MOUNT
   useEffect(() => {
