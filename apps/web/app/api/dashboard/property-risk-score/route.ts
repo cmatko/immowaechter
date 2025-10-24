@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     
     components.forEach(component => {
-      // Base score for component type (fallback to custom_name if component_type doesn't exist)
-      const componentType = component.component_type || component.custom_name || 'unknown';
+      // Base score for component type (use custom_name as component type)
+      const componentType = component.custom_name || 'unknown';
       const componentTypeScore = getComponentTypeScore(componentType);
       score += componentTypeScore;
       
