@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Prepare email data
-        const componentDisplayName = component.custom_name || interval.component || 'Komponente';
+        const componentDisplayName = component.custom_name || 'Komponente';
         const propertyAddress = `${propertyData.address || ''}, ${propertyData.postal_code || ''} ${propertyData.city || ''}`.trim();
 
         const maintenanceData: MaintenanceReminderData = {
