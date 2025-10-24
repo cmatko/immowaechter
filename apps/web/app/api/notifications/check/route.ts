@@ -110,10 +110,11 @@ export async function GET(request: NextRequest) {
         }
 
         // Get user details
+        const propertyData = property[0]; // Access first element of array
         const { data: user, error: userError } = await supabase
           .from('profiles')
           .select('id, email, full_name')
-          .eq('id', property.user_id)
+          .eq('id', propertyData.user_id)
           .single();
 
         if (userError || !user) {
@@ -145,11 +146,11 @@ export async function GET(request: NextRequest) {
 
         // Prepare email data
         const componentDisplayName = component.custom_name || interval.component;
-        const propertyAddress = `${property.address || ''}, ${property.postal_code || ''} ${property.city || ''}`.trim();
+        const propertyAddress = `${propertyData.address || ''}, ${propertyData.postal_code || ''} ${propertyData.city || ''}`.trim();
 
         const maintenanceData: MaintenanceReminderData = {
           userName: user.full_name || 'Immobilien-Eigentümer',
-          propertyName: property.name || 'Ihre Immobilie',
+          propertyName: propertyData.name || 'Ihre Immobilie',
           propertyAddress: propertyAddress,
           componentName: componentDisplayName,
           nextMaintenanceDate: component.next_maintenance,
