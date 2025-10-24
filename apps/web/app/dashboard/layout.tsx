@@ -65,6 +65,15 @@ export default function DashboardLayout({
               🏠 ImmoWächter
             </h1>
             <div className="flex items-center gap-4">
+              {/* Healing Button nur für cmaatko@gmail.com */}
+              {user?.email === 'cmaatko@gmail.com' && (
+                <a
+                  href="/dashboard/healing"
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                >
+                  🔧 Healing Dashboard
+                </a>
+              )}
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
                   {profile?.full_name || 'Benutzer'}
