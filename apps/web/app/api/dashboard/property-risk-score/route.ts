@@ -69,15 +69,8 @@ export async function GET(request: NextRequest) {
       score += 5; // Default maintenance penalty
       overdueMaintenances++; // Count all components as overdue for simplicity
       
-      // Old maintenance penalty
-      if (component.last_maintenance) {
-        const lastMaintenance = new Date(component.last_maintenance);
-        const daysSinceMaintenance = Math.floor((now.getTime() - lastMaintenance.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (daysSinceMaintenance > 365) {
-          score += 10; // Penalty for very old maintenance
-        }
-      }
+      // Old maintenance penalty (use default since last_maintenance doesn't exist)
+      score += 5; // Default old maintenance penalty
     });
     
     // Determine risk level
