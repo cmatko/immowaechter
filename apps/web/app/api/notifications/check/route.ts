@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
           userId: user.id,
           userEmail: user.email,
           userName: maintenanceData.userName,
-          propertyId: property.id,
+          propertyId: propertyData.id,
           propertyName: maintenanceData.propertyName,
           propertyAddress: propertyAddress,
           componentName: componentDisplayName,
