@@ -1,3 +1,5 @@
+'use client';
+
 import type { HealingSession } from '@/types/healing';
 
 export default function HealingDashboardPage() {
@@ -51,7 +53,7 @@ export default function HealingDashboardPage() {
       applied_fix: 'Mock API Response für Wartungserinnerung hinzugefügt',
       success: false,
       claude_tokens_used: 300,
-      linear_task_created: null,
+      linear_task_created: undefined,
       created_at: new Date(Date.now() - 7200000).toISOString(),
       updated_at: new Date(Date.now() - 7200000).toISOString(),
       description: 'Wir haben hier versucht, API-Probleme mit Mock-Daten zu umgehen, damit Tests auch ohne echte Server-Verbindung laufen.',
