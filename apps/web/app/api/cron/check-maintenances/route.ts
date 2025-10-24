@@ -39,22 +39,25 @@ export async function GET(request: Request) {
 
     // Send notifications
     for (const comp of criticalComponents || []) {
+      const property = comp.property[0]; // Get first property from array
+      if (!property) continue;
+      
       await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: comp.property.user_id,
+          userId: property.user_id,
           type: 'critical',
           data: {
-            userName: comp.property.user.full_name,
+            userName: property.user[0]?.full_name || 'Unknown User',
             componentName: comp.custom_name,
-            propertyName: comp.property.name,
+            propertyName: property.name,
             daysOverdue: comp.days_overdue,
             riskLevel: comp.risk_level,
-            detailsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/properties/${comp.property.id}`,
+            detailsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/properties/${property.id}`,
             title: '🚨 Kritische Wartung überfällig!',
             body: `${comp.custom_name} ist ${comp.days_overdue} Tage überfällig!`,
-            url: `/properties/${comp.property.id}`,
+            url: `/properties/${property.id}`,
             componentId: comp.id
           }
         })
